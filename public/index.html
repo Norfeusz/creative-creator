@@ -5,16 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreator Kreacji Ingenious</title>
     <link rel="stylesheet" href="/static/style.css">
- 
 </head>
 <body>
 
 <div class="container">
-    <div id="apiKeyContainer">
+    <div id="apiKeyVerification">
         <h1>Witaj w manualnym Kreatorze Kreacji - LinkTXT</h1>
         <p>Aby rozpocząć, podaj swój klucz API z platformy Ingenious.</p>
-        <input type="password" id="apiKeyInput" placeholder="Wprowadź swój klucz API" required>
-        <button id="startBtn">Zapisz i kontynuuj</button>
+        <form id="apiKeyForm">
+            <div class="form-group">
+                <label for="apiKeyInput">Klucz API:</label>
+                <input type="password" id="apiKeyInput" name="apiKey" required>
+            </div>
+            <button type="submit">Zweryfikuj</button>
+            <div id="apiKeyMessageContainer" class="message"></div>
+        </form>
     </div>
 
     <div id="mainApp" style="display: none;">

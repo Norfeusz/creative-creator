@@ -1,3 +1,4 @@
+// server.js - Zaktualizowany kod
 const express = require('express');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
@@ -9,196 +10,107 @@ const port = process.env.PORT || 3001;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Używamy dynamicznej ścieżki do serwowania plików statycznych.
-// Lokalnie ścieżka będzie pusta, na Vercelu będzie "/static".
-const staticPath = process.env.VERCEL_ENV ? 'public' : 'public';
 app.use('/static', express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, staticPath)));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // --- Konfiguracja i stałe ---
 const API_BASE_URL = 'https://api.system.netsalesmedia.pl';
-
-const LINK_TXT_FOLDER_NAME = 'Link TXT';
-
-// --- Adresy URL endpointów API ---
+const API_URL_GET_USER_INFO = `${API_BASE_URL}/access/user/get`; // Endpoint do weryfikacji klucza
 const API_URL_LIST_SETS = `${API_BASE_URL}/creatives/creativeset/list`;
 const API_URL_GET_SINGLE_SET = `${API_BASE_URL}/creatives/creativeset/single`;
 const API_URL_CREATE_SET = `${API_BASE_URL}/creatives/creativeset/create`;
 const API_URL_CREATE_CREATIVE = `${API_BASE_URL}/creatives/creative/link/create`;
 const API_URL_GET_TRACKING_CATEGORIES = `${API_BASE_URL}/partnerships/advertiser/findTrackingCategories`;
 
-// --- Funkcje pomocnicze, które przyjmują apiKey jako argument ---
+// --- Funkcje pomocnicze ---
 async function findLinkTxtFolderId(advertiserId, apiKey) {
   try {
     const searchPattern = /link/i;
-    const config = {
-      headers: { 'x-api-key': apiKey },
-      params: { advertiserId: advertiserId }
-    };
+    const config = { headers: { 'x-api-key': apiKey }, params: { advertiserId: advertiserId } };
     const response = await axios.get(API_URL_LIST_SETS, config);
-    if (response.status !== 200) {
-      return null;
-    }
+    if (response.status !== 200) { throw new Error("unauthorized"); }
     if (response.data && Array.isArray(response.data)) {
-      const linkTxtFolder = response.data.find(set => searchPattern.test(set.name));
-      return linkTxtFolder ? linkTxtFolder.creativeSetId : null;
+        const linkTxtFolder = response.data.find(set => searchPattern.test(set.name));
+        return linkTxtFolder ? linkTxtFolder.creativeSetId : null;
     }
     return null;
   } catch (error) {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-        throw new Error("unauthorized");
-    }
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) { throw new Error("unauthorized"); }
     if (error.response) console.error('Szczegóły błędu:', error.response.data);
     return null;
   }
 }
-
 async function getProductCategoryIdFromSet(creativeSetId, apiKey) {
   try {
-    const config = {
-      headers: { 'x-api-key': apiKey },
-      params: { creativeSetId: creativeSetId }
-    };
+    const config = { headers: { 'x-api-key': apiKey }, params: { creativeSetId: creativeSetId } };
     const response = await axios.get(API_URL_GET_SINGLE_SET, config);
-    if (response.status !== 200) {
-      return null;
-    }
-    if (response.data && response.data.productCategoryId) {
-      return response.data.productCategoryId;
-    }
+    if (response.status !== 200) { throw new Error("unauthorized"); }
+    if (response.data && response.data.productCategoryId) { return response.data.productCategoryId; }
     return null;
   } catch (error) {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-        throw new Error("unauthorized");
-    }
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) { throw new Error("unauthorized"); }
     if (error.response) console.error('Szczegóły błędu:', error.response.data);
     return null;
   }
 }
-
 async function getAdvertiserDefaultCategory(advertiserId, apiKey) {
   try {
     const iqlQuery = `advertiser.id = '${advertiserId}'`;
-    const config = {
-      headers: { 'x-api-key': apiKey, 'Content-Type': 'text/plain' },
-    };
+    const config = { headers: { 'x-api-key': apiKey, 'Content-Type': 'text/plain' } };
     const response = await axios.post(API_URL_GET_TRACKING_CATEGORIES, iqlQuery, config);
-    if (response.data && Array.isArray(response.data.entries) && response.data.entries.length > 0) {
-      return response.data.entries[0].trackingCategoryId;
-    }
+    if (response.data && Array.isArray(response.data.entries) && response.data.entries.length > 0) { return response.data.entries[0].trackingCategoryId; }
     return null;
   } catch (error) {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-        throw new Error("unauthorized");
-    }
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) { throw new Error("unauthorized"); }
     if (error.response) console.error('Szczegóły błędu:', error.response.data);
     return null;
   }
 }
-
 async function createNewSubfolder(advertiserId, parentCreativeSetId, folderName, defaultTargetUrl, productCategoryId, apiKey) {
   try {
-    const requestBody = {
-      commandId: uuidv4(),
-      creativeSetId: uuidv4(),
-      advertiserId: advertiserId,
-      parentCreativeSetId: parentCreativeSetId,
-      name: folderName,
-      defaultTargetURL: defaultTargetUrl,
-      productCategoryId: productCategoryId,
-    };
-    const config = {
-      headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' }
-    };
+    const requestBody = { commandId: uuidv4(), creativeSetId: uuidv4(), advertiserId: advertiserId, parentCreativeSetId: parentCreativeSetId, name: folderName, defaultTargetURL: defaultTargetUrl, productCategoryId: productCategoryId };
+    const config = { headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' } };
     const response = await axios.post(API_URL_CREATE_SET, requestBody, config);
-    if (response.status !== 200) {
-      return null;
-    }
-    if (response.data && response.data.errors) {
-      return null;
-    }
+    if (response.status !== 200) { return null; }
+    if (response.data && response.data.errors) { return null; }
     return requestBody.creativeSetId;
   } catch (error) {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-        throw new Error("unauthorized");
-    }
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) { throw new Error("unauthorized"); }
     if (error.response) console.error('Szczegóły błędu:', error.response.data);
     return null;
   }
 }
-
 async function createNewCreativeSet(advertiserId, folderName, defaultTargetUrl, productCategoryId, apiKey) {
   try {
-    const requestBody = {
-      commandId: uuidv4(),
-      creativeSetId: uuidv4(),
-      advertiserId: advertiserId,
-      name: folderName,
-      defaultTargetURL: defaultTargetUrl,
-      productCategoryId: productCategoryId,
-    };
-    const config = {
-      headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' }
-    };
+    const requestBody = { commandId: uuidv4(), creativeSetId: uuidv4(), advertiserId: advertiserId, name: folderName, defaultTargetURL: defaultTargetUrl, productCategoryId: productCategoryId };
+    const config = { headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' } };
     const response = await axios.post(API_URL_CREATE_SET, requestBody, config);
-    if (response.status !== 200) {
-      return null;
-    }
-    if (response.data && response.data.errors) {
-      return null;
-    }
+    if (response.status !== 200) { return null; }
+    if (response.data && response.data.errors) { return null; }
     return requestBody.creativeSetId;
   } catch (error) {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-        throw new Error("unauthorized");
-    }
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) { throw new Error("unauthorized"); }
     if (error.response) console.error('Szczegóły błędu:', error.response.data);
     return null;
   }
 }
-
 async function createLinkCreative(creativeData, apiKey) {
   try {
-    const requestBody = {
-      commandId: uuidv4(),
-      creativeId: uuidv4(),
-      creativeSetId: creativeData.creativeSetId,
-      name: creativeData.creativeName,
-      content: '.',
-      description: 'Automatycznie stworzona kreacja przez skrypt',
-      targetUrl: creativeData.targetUrl,
-      status: 'ACTIVE',
-    };
-    const config = {
-      headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' }
-    };
+    const requestBody = { commandId: uuidv4(), creativeId: uuidv4(), creativeSetId: creativeData.creativeSetId, name: creativeData.creativeName, content: '.', description: 'Automatycznie stworzona kreacja przez skrypt', targetUrl: creativeData.targetUrl, status: 'ACTIVE' };
+    const config = { headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' } };
     const response = await axios.post(API_URL_CREATE_CREATIVE, requestBody, config);
-    if (response.status !== 200) {
-      return null;
-    }
-    if (response.data && response.data.errors) {
-      return null;
-    }
+    if (response.status !== 200) { return null; }
+    if (response.data && response.data.errors) { return null; }
     return response.data;
   } catch (error) {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-        throw new Error("unauthorized");
-    }
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) { throw new Error("unauthorized"); }
     if (error.response) console.error('Szczegóły błędu:', error.response.data);
     return null;
   }
 }
-
 async function findHighestCreativeNumber(parentCreativeSetId, advertiserId, apiKey) {
     try {
-        const config = {
-            headers: { 'x-api-key': apiKey },
-            params: {
-                creativeSetId: parentCreativeSetId,
-                advertiserId: advertiserId
-            }
-        };
+        const config = { headers: { 'x-api-key': apiKey }, params: { creativeSetId: parentCreativeSetId, advertiserId: advertiserId } };
         const response = await axios.get(API_URL_LIST_SETS, config);
         if (response.data && Array.isArray(response.data)) {
             let highestNumber = 0;
@@ -206,18 +118,14 @@ async function findHighestCreativeNumber(parentCreativeSetId, advertiserId, apiK
                 const match = set.name.match(/^(\d+)/);
                 if (match) {
                     const number = parseInt(match[1], 10);
-                    if (number > highestNumber) {
-                        highestNumber = number;
-                    }
+                    if (number > highestNumber) { highestNumber = number; }
                 }
             });
             return highestNumber;
         }
         return 0;
     } catch (error) {
-        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-            throw new Error("unauthorized");
-        }
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) { throw new Error("unauthorized"); }
         if (error.response) console.error('Szczegóły błędu:', error.response.data);
         return 0;
     }
@@ -274,7 +182,7 @@ async function runAutomation(advertiserId, creativeName, campaignPeriod, targetU
         const creativeNameWithPrefix = `LinkTXT - ${newCreativeFolderName}`;
         const myCreative = {
             creativeName: creativeNameWithPrefix,
-            creativeContent: '.',
+            content: '.',
             creativeSetId: newFolderId,
             targetUrl: finalTargetUrl,
         };
@@ -292,6 +200,28 @@ async function runAutomation(advertiserId, creativeName, campaignPeriod, targetU
         return { success: false, message: 'Wystąpił nieoczekiwany błąd podczas automatyzacji.' };
     }
 }
+
+// --- Nowy endpoint do weryfikacji klucza API ---
+app.post('/verify-api-key', async (req, res) => {
+    const { apiKey } = req.body;
+    if (!apiKey) {
+        return res.status(400).json({ success: false, message: 'Błąd: Brakuje klucza API.' });
+    }
+
+    try {
+        const config = { headers: { 'x-api-key': apiKey } };
+        const response = await axios.get(API_URL_GET_USER_INFO, config);
+        
+        if (response.status === 200) {
+            res.status(200).json({ success: true, message: 'Klucz API zweryfikowany pomyślnie!' });
+        } else {
+            res.status(401).json({ success: false, message: 'Nieprawidłowy klucz API lub brak uprawnień.' });
+        }
+    } catch (error) {
+        console.error('Błąd podczas weryfikacji klucza:', error);
+        res.status(401).json({ success: false, message: 'Nieprawidłowy klucz API lub brak uprawnień.' });
+    }
+});
 
 app.post('/create', async (req, res) => {
     const { advertiserSelect, otherAdvertiserSelect, advertiserId, creativeName, campaignPeriod, targetUrl, apiKey } = req.body;

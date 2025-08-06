@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', (event) => {
-    const apiKeyContainer = document.getElementById('apiKeyContainer');
+    const apiKeyVerification = document.getElementById('apiKeyVerification');
+    const apiKeyForm = document.getElementById('apiKeyForm');
     const apiKeyInput = document.getElementById('apiKeyInput');
-    const startBtn = document.getElementById('startBtn');
     const mainApp = document.getElementById('mainApp');
+    const apiKeyMessageContainer = document.getElementById('apiKeyMessageContainer');
 
     const advertiserSelect = document.getElementById('advertiserSelect');
     const otherAdvertiserSelectField = document.getElementById('otherAdvertiserSelectField');
@@ -12,7 +13,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const submitBtn = document.getElementById('submitBtn');
     const messageContainer = document.getElementById('messageContainer');
 
-   // Statyczna lista reklamodawców
     const OTHER_ADVERTISERS = [
         { id: '77742', name: 'AliExpress' },
         { id: '87762', name: 'Allegro_A80' },
@@ -59,19 +59,44 @@ document.addEventListener('DOMContentLoaded', (event) => {
     let globalApiKey = '';
 
     // Obsługa strony powitalnej
-    startBtn.addEventListener('click', () => {
+    apiKeyForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         const apiKey = apiKeyInput.value.trim();
         if (apiKey) {
-            globalApiKey = apiKey;
-            apiKeyContainer.style.display = 'none';
-            mainApp.style.display = 'block';
-            populateOtherAdvertisersList();
+            apiKeyMessageContainer.textContent = 'Weryfikacja klucza...';
+            apiKeyMessageContainer.className = 'message';
+            try {
+                const response = await fetch('/verify-api-key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiKey })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    globalApiKey = apiKey;
+                    sessionStorage.setItem('apiKey', apiKey);
+                    apiKeyVerification.style.display = 'none';
+                    mainApp.style.display = 'block';
+                    populateOtherAdvertisersList();
+                    apiKeyMessageContainer.textContent = '';
+                } else {
+                    apiKeyMessageContainer.textContent = result.message;
+                    apiKeyMessageContainer.classList.add('error');
+                }
+            } catch (error) {
+                apiKeyMessageContainer.textContent = 'Wystąpił błąd podczas komunikacji z serwerem.';
+                apiKeyMessageContainer.classList.add('error');
+            }
         } else {
-            alert('Proszę wprowadzić klucz API.');
+            apiKeyMessageContainer.textContent = 'Proszę wprowadzić klucz API.';
+            apiKeyMessageContainer.classList.add('error');
         }
     });
 
     function populateOtherAdvertisersList() {
+        otherAdvertiserSelect.innerHTML = '<option value="" disabled selected>Wybierz...</option><option value="manual">Inny reklamodawca</option>';
         OTHER_ADVERTISERS.forEach(adv => {
             const option = document.createElement('option');
             option.value = adv.id;
@@ -101,19 +126,18 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     advertiserSelect.addEventListener('change', toggleAdvertiserFields);
     otherAdvertiserSelect.addEventListener('change', toggleManualIdField);
-
     toggleAdvertiserFields();
     toggleManualIdField();
 
     submitBtn.addEventListener('click', async () => {
         messageContainer.textContent = '';
         messageContainer.className = '';
+        messageContainer.textContent = 'Tworzenie kreacji... Proszę czekać.';
 
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
         
         let finalAdvertiserId;
-
         if (data.advertiserSelect === 'other') {
             if (data.otherAdvertiserSelect === 'manual') {
                 finalAdvertiserId = data.advertiserId;
@@ -125,17 +149,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
         }
         
         data.advertiserId = finalAdvertiserId;
-        data.apiKey = globalApiKey; // Klucz API dołączamy tutaj
+        data.apiKey = globalApiKey;
 
         try {
             const response = await fetch('/create', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             });
-
             const result = await response.json();
 
             if (response.ok) {
