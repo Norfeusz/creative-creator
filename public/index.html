@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreator Kreacji Ingenious</title>
     <link rel="stylesheet" href="style.css">
-    <script src="/script.js" defer></script>
 </head>
 <body>
 
@@ -14,16 +13,27 @@
     <form id="creativeForm">
         <div class="form-group">
             <label for="advertiserSelect">Reklamodawca:</label>
-            <select id="advertiserSelect" name="advertiserSelect">
+            <select id="advertiserSelect" name="advertiserSelect" required>
+                <option value="" disabled selected>Wybierz reklamodawcę...</option>
                 <option value="93931">Triverna</option>
-                <option value="76829">TaniaKsiążka.pl</option>
+                <option value="76829">TaniaKsiazka.pl</option>
+                <option value="other">Inny reklamodawca</option>
+            </select>
+        </div>
+        
+        <div class="form-group" id="otherAdvertiserSelectField" style="display: none;">
+            <label for="otherAdvertiserSelect">Wybierz reklamodawcę z listy:</label>
+            <select id="otherAdvertiserSelect" name="otherAdvertiserSelect">
+                <option value="" disabled selected>Wybierz...</option>
                 <option value="manual">Inny reklamodawca</option>
             </select>
         </div>
+
         <div class="form-group" id="advertiserIdField" style="display: none;">
             <label for="advertiserId">ID reklamodawcy:</label>
             <input type="text" id="advertiserId" name="advertiserId" placeholder="Wprowadź ID reklamodawcy">
         </div>
+        
         <div class="form-group">
             <label for="creativeName">Nazwa kreacji:</label>
             <input type="text" id="creativeName" name="creativeName" required>
@@ -41,6 +51,8 @@
 
     <div id="messageContainer"></div>
 </div>
+
+<script src="script.js" defer></script>
 
 </body>
 </html>
