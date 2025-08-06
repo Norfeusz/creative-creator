@@ -4,52 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreator Kreacji Ingenious</title>
-   <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css">
+ 
 </head>
 <body>
 
 <div class="container">
-    <h1>Kreator Kreacji Ingenious - LinkTXT</h1>
-    <form id="creativeForm">
-        <div class="form-group">
-            <label for="advertiserSelect">Reklamodawca:</label>
-            <select id="advertiserSelect" name="advertiserSelect" required>
-                <option value="" disabled selected>Wybierz reklamodawcę...</option>
-                <option value="93931">Triverna</option>
-                <option value="76829">TaniaKsiazka.pl</option>
-                <option value="other">Inny reklamodawca</option>
-            </select>
-        </div>
-        
-        <div class="form-group" id="otherAdvertiserSelectField" style="display: none;">
-            <label for="otherAdvertiserSelect">Wybierz reklamodawcę z listy:</label>
-            <select id="otherAdvertiserSelect" name="otherAdvertiserSelect">
-                <option value="" disabled selected>Wybierz...</option>
-                <option value="manual">Inny reklamodawca</option>
-            </select>
-        </div>
+    <div id="apiKeyContainer">
+        <h1>Witaj w Kreatorze Kreacji</h1>
+        <p>Aby rozpocząć, podaj swój klucz API z platformy Ingenious.</p>
+        <input type="password" id="apiKeyInput" placeholder="Wprowadź swój klucz API" required>
+        <button id="startBtn">Zapisz i kontynuuj</button>
+    </div>
 
-        <div class="form-group" id="advertiserIdField" style="display: none;">
-            <label for="advertiserId">ID reklamodawcy:</label>
-            <input type="text" id="advertiserId" name="advertiserId" placeholder="Wprowadź ID reklamodawcy">
-        </div>
-        
-        <div class="form-group">
-            <label for="creativeName">Nazwa kreacji:</label>
-            <input type="text" id="creativeName" name="creativeName" required>
-        </div>
-        <div class="form-group">
-            <label for="campaignPeriod">Okres działania kampanii (opcjonalne):</label>
-            <input type="text" id="campaignPeriod" name="campaignPeriod">
-        </div>
-        <div class="form-group">
-            <label for="targetUrl">Link:</label>
-            <input type="text" id="targetUrl" name="targetUrl" required>
-        </div>
-        <button type="button" id="submitBtn">Utwórz kreację</button>
-    </form>
+    <div id="mainApp" style="display: none;">
+        <h1>Kreator Kreacji Ingenious</h1>
+        <form id="creativeForm">
+            <div class="form-group">
+                <label for="advertiserSelect">Reklamodawca:</label>
+                <select id="advertiserSelect" name="advertiserSelect" required>
+                    <option value="" disabled selected>Wybierz reklamodawcę...</option>
+                    <option value="93931">Triverna</option>
+                    <option value="76829">TaniaKsiazka.pl</option>
+                    <option value="other">Inny reklamodawca</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="otherAdvertiserSelectField" style="display: none;">
+                <label for="otherAdvertiserSelect">Wybierz reklamodawcę z listy:</label>
+                <select id="otherAdvertiserSelect" name="otherAdvertiserSelect">
+                    <option value="" disabled selected>Wybierz...</option>
+                    <option value="manual">Inny reklamodawca</option>
+                </select>
+            </div>
 
-    <div id="messageContainer"></div>
+            <div class="form-group" id="advertiserIdField" style="display: none;">
+                <label for="advertiserId">ID reklamodawcy:</label>
+                <input type="text" id="advertiserId" name="advertiserId" placeholder="Wprowadź ID reklamodawcy">
+            </div>
+            
+            <div class="form-group">
+                <label for="creativeName">Nazwa kreacji:</label>
+                <input type="text" id="creativeName" name="creativeName" required>
+            </div>
+            <div class="form-group">
+                <label for="campaignPeriod">Okres działania kampanii (opcjonalne):</label>
+                <input type="text" id="campaignPeriod" name="campaignPeriod">
+            </div>
+            <div class="form-group">
+                <label for="targetUrl">Link:</label>
+                <input type="text" id="targetUrl" name="targetUrl" required>
+            </div>
+            <button type="button" id="submitBtn">Utwórz kreację</button>
+        </form>
+
+        <div id="messageContainer"></div>
+    </div>
 </div>
 
 <script src="/static/script.js" defer></script>
