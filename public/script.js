@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         data.advertiserId = finalAdvertiserId;
 
         try {
-            const response = await fetch('/create', {
+            const response = await fetch('/api/index.js', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
