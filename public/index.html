@@ -14,8 +14,7 @@
         <p>Aby rozpocząć, podaj swój klucz API z platformy Ingenious.</p>
         <form id="apiKeyForm">
             <div class="form-group">
-                <label for="apiKeyInput">Klucz API:</label>
-                <input type="password" id="apiKeyInput" name="apiKey" required>
+                <input type="password" id="apiKeyInput" name="apiKey" placeholder="Wklej tutaj swój klucz API" required>
             </div>
             <button type="submit">Zweryfikuj</button>
             <div id="apiKeyMessageContainer" class="message"></div>
@@ -28,19 +27,7 @@
             <div class="form-group">
                 <label for="advertiserSelect">Reklamodawca:</label>
                 <select id="advertiserSelect" name="advertiserSelect" required>
-                    <option value="" disabled selected>Wybierz reklamodawcę...</option>
-                    <option value="93931">Triverna</option>
-                    <option value="76829">TaniaKsiazka.pl</option>
-                    <option value="other">Inny reklamodawca</option>
-                </select>
-            </div>
-            
-            <div class="form-group" id="otherAdvertiserSelectField" style="display: none;">
-                <label for="otherAdvertiserSelect">Wybierz reklamodawcę z listy:</label>
-                <select id="otherAdvertiserSelect" name="otherAdvertiserSelect">
-                    <option value="" disabled selected>Wybierz...</option>
-                    <option value="manual">Inny reklamodawca</option>
-                </select>
+                    </select>
             </div>
 
             <div class="form-group" id="advertiserIdField" style="display: none;">
